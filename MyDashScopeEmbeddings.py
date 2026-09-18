@@ -1,28 +1,31 @@
-﻿#基于Embeddings，自行封装DashScopeEmbeddings，解决langchain-community停止维护的问题
-from dashscope import embeddings, Generation
+from dashscope import embeddings
 from langchain_core.embeddings import Embeddings
-
+from typing import List
 import config_data as config
-
 
 class DashScopeEmbeddings(Embeddings):
     def __init__(self, model: str = config.embeddings_model_name):
         self.model = model
         self.api_key = config.dashscope_api_key
 
-    def embed_documents(self, texts):
-        embedding_result = embeddings.TextEmbedding.call(
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        resp = embeddings.TextEmbedding.call(
             model=self.model,
             input=texts,
-            api_key=self.api_key
+            api_key=self.api_key,
+            timeout=30
         )
-        return [item["embedding"] for item in embedding_result.output["embeddings"]]
+        if resp.status_code != 200:
+            raise RuntimeError(f"DashScope embedding 调用失败：{resp.code}, {resp.message}")
+        return [item["embedding"] for item in resp.output["embeddings"]]
 
-    def embed_query(self, text):
-        query_result = embeddings.TextEmbedding.call(
+    def embed_query(self, text: str) -> List[float]:
+        resp = embeddings.TextEmbedding.call(
             model=self.model,
             input=[text],
-            api_key=self.api_key
+            api_key=self.api_key,
+            timeout=30
         )
-        return query_result.output["embeddings"][0]["embedding"]
-
+        if resp.status_code != 200:
+            raise RuntimeError(f"DashScope embedding 调用失败：{resp.code}, {resp.message}")
+        return resp.output["embeddings"][0]["embedding"]
