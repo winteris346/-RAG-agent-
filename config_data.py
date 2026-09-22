@@ -24,7 +24,15 @@ separators=["\n\n","\n",",",".","?","!","，","。","？","！"," ",""]
 
 max_split_char_number=100
 
-similarity_threshold=1
+
+
+collection_name = "rag_store"
+similarity_threshold = 3
+
+# Milvus配置
+milvus_uri = "http://localhost:19530"
+
+
 
 import os
 
